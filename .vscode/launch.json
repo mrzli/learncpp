@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "configurations": [
+    {
+      "name": "C++ debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${fileDirname}/${fileBasenameNoExtension}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${fileDirname}",
+      "environment": [
+        {
+          "name": "LD_LIBRARY_PATH",
+          "value": "/home/mrzli/projects/games/vulkan-sdk/x86_64/lib:$LD_LIBRARY_PATH"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "C++ with Vulkan",
+      "miDebuggerPath": "/usr/bin/gdb"
+    }
+  ]
+}
