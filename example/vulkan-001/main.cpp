@@ -7,35 +7,21 @@
 #include <vector>
 #include <set>
 
-// Validation layer settings
-static const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-
-// Debug messenger callback
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-    [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT type,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    [[maybe_unused]] void *pUserData)
-{
-  if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-  {
-    std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
-  }
-  return VK_FALSE;
-}
-
 vk::ApplicationInfo createVulkanApplicationInfo()
 {
   vk::ApplicationInfo appInfo{};
-  appInfo.sType = vk::StructureType::eApplicationInfo;
+  // appInfo.sType = vk::StructureType::eApplicationInfo;
   appInfo.setPApplicationName("Vulkan App");
   appInfo.setApplicationVersion(VK_MAKE_API_VERSION(0, 1, 0, 0));
   appInfo.setPEngineName("My Engine");
   appInfo.setEngineVersion(VK_MAKE_API_VERSION(0, 1, 0, 0));
-  appInfo.setApiVersion(VK_API_VERSION_1_0);
+  appInfo.setApiVersion(VK_API_VERSION_1_3);
 
   return appInfo;
 }
+
+// Validation layer settings
+static const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enableValidationLayers)
 {
@@ -101,6 +87,20 @@ vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enabl
 
   vk::Instance instance = vk::createInstance(createInfo);
   return instance;
+}
+
+// Debug messenger callback
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    [[maybe_unused]] void *pUserData)
+{
+  if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+  {
+    std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
+  }
+  return VK_FALSE;
 }
 
 vk::DebugUtilsMessengerEXT createDebugMessenger(vk::Instance instance, bool enableValidationLayers, vk::DispatchLoaderDynamic &dldy)
