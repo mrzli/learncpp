@@ -47,6 +47,7 @@
         "${file}",
         "-L/home/mrzli/projects/games/vulkan-sdk/x86_64/lib",
         "-lvulkan",
+        "-lglfw",
         "-o",
         "${fileDirname}/${fileBasenameNoExtension}"
       ],
