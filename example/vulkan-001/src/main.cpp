@@ -10,7 +10,7 @@
 vk::ApplicationInfo createVulkanApplicationInfo()
 {
   vk::ApplicationInfo appInfo{};
-  // appInfo.sType = vk::StructureType::eApplicationInfo;
+  appInfo.sType = vk::StructureType::eApplicationInfo;
   appInfo.setPApplicationName("Vulkan App");
   appInfo.setApplicationVersion(VK_MAKE_API_VERSION(0, 1, 0, 0));
   appInfo.setPEngineName("My Engine");
@@ -20,10 +20,7 @@ vk::ApplicationInfo createVulkanApplicationInfo()
   return appInfo;
 }
 
-// Validation layer settings
-static const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-
-vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enableValidationLayers)
+std::vector<const char *> getRequiredExtensions(bool enableValidationLayers)
 {
   // Get GLFW extensions
   uint32_t glfwExtensionCount = 0;
@@ -36,40 +33,72 @@ vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enabl
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
 
-  // Verify extension support
+  return extensions;
+}
+
+void verifyExtensionSupport(const std::vector<const char *> &extensions)
+{
   auto availableExtensions = vk::enumerateInstanceExtensionProperties();
-  std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
+  std::set<std::string> remainingMissingRequiredExtensions(extensions.begin(), extensions.end());
+
   for (const auto &ext : availableExtensions)
   {
-    requiredExtensions.erase(ext.extensionName);
+    remainingMissingRequiredExtensions.erase(ext.extensionName);
   }
-  if (!requiredExtensions.empty())
+
+  std::cout << "Required extensions: ";
+  for (const auto &ext : extensions)
   {
-    throw std::runtime_error("Required extensions not supported");
+    std::cout << ext << " ";
   }
+  std::cout << std::endl;
+
+  if (!remainingMissingRequiredExtensions.empty())
+  {
+    const std::string missingExtensionsMessage = "Missing required extensions: ";
+    for (const auto &ext : remainingMissingRequiredExtensions)
+    {
+      std::cerr << ext << " ";
+    }
+
+
+    throw std::runtime_error("Required extensions are not supported.");
+  }
+}
+
+// Validation layer settings
+static const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+
+void printLayers(std::vector<vk::LayerProperties> &layers)
+{
+  std::cout << "Available validation layers: " << layers.size() << std::endl;
+  for (const auto &layer : layers)
+  {
+    std::cout << "  " << layer.layerName << " (version "
+              << VK_VERSION_MAJOR(layer.specVersion) << "."
+              << VK_VERSION_MINOR(layer.specVersion) << "."
+              << VK_VERSION_PATCH(layer.specVersion) << ")" << std::endl;
+  }
+}
+
+vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enableValidationLayers)
+{
+  auto extensions = getRequiredExtensions(enableValidationLayers);
+  verifyExtensionSupport(extensions);
 
   // Instance create info
   vk::InstanceCreateInfo createInfo{};
-  // createInfo.sType = vk::StructureType::eInstanceCreateInfo;
+  createInfo.sType = vk::StructureType::eInstanceCreateInfo;
   createInfo.setPApplicationInfo(&appInfo);
   createInfo.setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()));
   createInfo.setPpEnabledExtensionNames(extensions.data());
 
   // Validation layers
-  std::vector<const char *> layers;
   if (enableValidationLayers)
   {
     auto availableLayers = vk::enumerateInstanceLayerProperties();
 
-    // Print available layers
-    std::cout << "Available validation layers: " << availableLayers.size() << std::endl;
-    for (const auto &layer : availableLayers)
-    {
-      std::cout << "  " << layer.layerName << " (version "
-                << VK_VERSION_MAJOR(layer.specVersion) << "."
-                << VK_VERSION_MINOR(layer.specVersion) << "."
-                << VK_VERSION_PATCH(layer.specVersion) << ")" << std::endl;
-    }
+    printLayers(availableLayers);
 
     std::set<std::string> requiredLayers(validationLayers.begin(), validationLayers.end());
     for (const auto &layer : availableLayers)
@@ -80,9 +109,8 @@ vk::Instance createVulkanInstance(const vk::ApplicationInfo &appInfo, bool enabl
     {
       throw std::runtime_error("Required validation layers not supported");
     }
-    layers = validationLayers;
-    createInfo.setEnabledLayerCount(static_cast<uint32_t>(layers.size()));
-    createInfo.setPpEnabledLayerNames(layers.data());
+    createInfo.setEnabledLayerCount(static_cast<uint32_t>(validationLayers.size()));
+    createInfo.setPpEnabledLayerNames(validationLayers.data());
   }
 
   vk::Instance instance = vk::createInstance(createInfo);
