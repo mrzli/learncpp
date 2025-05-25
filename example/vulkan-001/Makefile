@@ -10,6 +10,7 @@ SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = $(BUILD_DIR)/bin
 OBJ_DIR = $(BUILD_DIR)/obj
+DEP_DIR = $(BUILD_DIR)/dep
 
 # Output executable
 TARGET = $(BIN_DIR)/vulkan-example
@@ -17,6 +18,7 @@ TARGET = $(BIN_DIR)/vulkan-example
 # Source files
 SOURCES = $(shell find $(SRC_DIR) -name '*.cpp')
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+DEPS = $(OBJECTS:.o=.d)
 
 # Default target
 .PHONY: all
@@ -27,12 +29,15 @@ $(TARGET): $(OBJECTS) | $(BIN_DIR)
 	$(CXX) $(OBJECTS) $(CPP_VERSION_FLAG) $(LDFLAGS) $(LIB) -o $@
 
 # Compile source files to object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR) $(DEP_DIR)
+	$(CXX) $(CXXFLAGS) -MMD -MP -MF $(DEP_DIR)/$*.d -c $< -o $@
 
 # Create directories if they don't exist
-$(BUILD_DIR) $(OBJ_DIR) $(BIN_DIR):
+$(BUILD_DIR) $(OBJ_DIR) $(BIN_DIR) $(DEP_DIR):
 	mkdir -p $@
+
+# Include dependency files
+-include $(DEPS)
 
 # Clean build artifacts
 .PHONY: clean
